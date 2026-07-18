@@ -10,7 +10,7 @@ FieldWindow::FieldWindow(QWidget *parent)
 
     setWindowTitle("Autonomous Visualizer");
 
-    fieldImage.load(":/overrideField.png");
+    fieldImage.load("programming/HyperBotUploader/resources/overrideField.png");
 
     qDebug() << "Null:" << fieldImage.isNull();
     qDebug() << "Size:" << fieldImage.size();
