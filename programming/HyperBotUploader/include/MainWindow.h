@@ -1,6 +1,7 @@
 #pragma once
 #include "ProjectManager.h"
 #include <QMainWindow>
+#include "UsbManager.h"
 
 // Widgets
 class QLabel;
@@ -25,6 +26,7 @@ private:
     QLabel* robotStatus;
     QLineEdit* projectPath;
     QPushButton* browseButton;
+    
 
     // Driver Control
     QRadioButton* mainRadio;
@@ -56,5 +58,9 @@ private:
     ProjectManager* projectManager;
 
     QPushButton *visualizerButton;
-    
+    void loadAutonomousFunctions(const QString& filename);
+
+    QComboBox* portCombo;
+    QPushButton* refreshUsbButton;
+    UsbManager* usbManager;
 };

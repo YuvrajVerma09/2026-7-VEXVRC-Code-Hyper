@@ -28,6 +28,8 @@ qt_add_executable(HyperBotUploader
     include/RobotItem.h
     src/RobotItem.cpp
 
+    include/UsbManager.h
+    src/UsbManager.cpp
     
 )
 target_include_directories(HyperBotUploader

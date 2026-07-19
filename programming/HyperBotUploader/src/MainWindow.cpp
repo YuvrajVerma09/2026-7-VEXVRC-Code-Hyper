@@ -16,17 +16,24 @@
 #include <QVBoxLayout>
 #include <QWidget>
 #include "FieldWindow.h"
+#include <QFile>
+#include <QRegularExpression>
+#include <QTextStream>
+#include "UsbManager.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
     // Create backend
     projectManager = new ProjectManager(this);
+    usbManager = new UsbManager(this);
 
+    
     
 
     // Build the interface
     createUi();
+    portCombo->addItems(usbManager->availablePorts());
     connect(visualizerButton,
         &QPushButton::clicked,
         this,
@@ -35,6 +42,14 @@ MainWindow::MainWindow(QWidget *parent)
         FieldWindow *window = new FieldWindow();
 
         window->show();
+    });
+    connect(refreshUsbButton,
+        &QPushButton::clicked,
+        this,
+        [this]()
+    {
+        portCombo->clear();
+        portCombo->addItems(usbManager->availablePorts());
     });
     // Browse button
     connect(browseButton,
@@ -53,6 +68,7 @@ MainWindow::MainWindow(QWidget *parent)
             return;
 
         projectPath->setText(file);
+        loadAutonomousFunctions(file);
 
         robotStatus->setText("🟢 Source File Loaded");
 
@@ -82,15 +98,26 @@ void MainWindow::createUi()
     topLayout->addWidget(new QLabel("Project"));
 
     projectPath = new QLineEdit();
-    projectPath->setPlaceholderText("Select a PROS project...");
+    projectPath->setPlaceholderText("Select Robot Source...");
     topLayout->addWidget(projectPath);
 
     browseButton = new QPushButton("Browse");
     topLayout->addWidget(browseButton);
 
+    // USB Label
+    topLayout->addWidget(new QLabel("USB"));
+
+    // USB Port Combo Box
+    portCombo = new QComboBox();
+    topLayout->addWidget(portCombo);
+
+    // Refresh Button
+    refreshUsbButton = new QPushButton("Refresh");
+    topLayout->addWidget(refreshUsbButton);
+
     topLayout->addStretch();
 
-    robotStatus = new QLabel("🔴 No Project Loaded");
+    robotStatus = new QLabel("🔴 No Robot");
     topLayout->addWidget(robotStatus);
 
     mainLayout->addLayout(topLayout);
@@ -216,4 +243,49 @@ void MainWindow::createUi()
 
     splitter->setStretchFactor(0, 1);
     splitter->setStretchFactor(1, 3);
+}
+void MainWindow::loadAutonomousFunctions(const QString &filename)
+{
+    autonCombo->clear();
+
+    QFile file(filename);
+
+    if(!file.open(QIODevice::ReadOnly | QIODevice::Text))
+        return;
+
+    QTextStream in(&file);
+
+    QString text = in.readAll();
+
+    file.close();
+
+    // Find every "void functionName("
+    QRegularExpression regex(
+        R"(void\s+([A-Za-z_][A-Za-z0-9_]*)\s*\()");
+
+    auto matches = regex.globalMatch(text);
+
+    while(matches.hasNext())
+    {
+        auto match = matches.next();
+
+    
+        QString name = match.captured(1);
+        QString lowerName = name.toLower();
+
+        if (name.contains("left") ||
+            name.contains("right") ||
+            name.contains("auton") ||
+            name.contains("sector") ||
+            name.contains("test") ||
+            name.contains("skills") ||
+            name.contains("default"))
+        {
+            autonCombo->addItem(name);
+        }
+    }
+    if (autonCombo->count() == 0)
+    {
+        autonCombo->addItem("No autonomous routines found");
+    }
 }
