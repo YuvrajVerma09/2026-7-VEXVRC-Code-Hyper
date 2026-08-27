@@ -51,8 +51,10 @@
 
 // Drivetrain Ports
 
-#define LEFT_DRIVE_PORTS {-15, -14, -13}
-#define RIGHT_DRIVE_PORTS {20, 8, 21}
+#define LEFT_DRIVE_PORTS {-15, -14}
+#define RIGHT_DRIVE_PORTS {20, 8}
+#define LEFT_EXTRA_DRIVE_PORT  {-17}
+#define RIGHT_EXTRA_DRIVE_PORT {18}
 
 // Chassis class to use (default is initDefaultChassis)
 #define INIT_CHASSIS initDefaultChassis
