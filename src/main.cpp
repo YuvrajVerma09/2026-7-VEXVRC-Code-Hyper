@@ -788,7 +788,7 @@ namespace hyper
 
 			// Lateral and turning rotary sensors
 			pros::Rotation lRot;
-			pros::Rotation tRot;
+			///pros::Rotation tRot;
 
 			// IMU
 			pros::IMU imu;
@@ -805,7 +805,7 @@ namespace hyper
 				MGPorts rightPorts;
 				int8_t imuPort;
 				uint8_t lRotPort;
-				uint8_t tRotPort;
+				///uint8_t tRotPort;
 			};
 
 			/// @brief Tare the motor groups
@@ -819,7 +819,7 @@ namespace hyper
 			void resetEncoders()
 			{
 				// Reset encoders
-				tRot.reset();
+				///tRot.reset();
 				lRot.reset();
 			}
 			
@@ -843,7 +843,8 @@ namespace hyper
     			rightExtra(drivePorts.rightExtraPort),
 				imu(drivePorts.imuPort),
 												
-				lRot(drivePorts.lRotPort), tRot(drivePorts.tRotPort)
+				lRot(drivePorts.lRotPort) 
+				///tRot(drivePorts.tRotPort)
 			{
 				calibrateAll();
 			};
@@ -1540,6 +1541,7 @@ namespace hyper
 					break;
 				case DriveControlMode::ATAC:
 					bindDriveControl(&DriveControl::atac);
+					break;
 				default:
 					bindDriveControl(&DriveControl::fallbackControl);
 					break;
@@ -2446,7 +2448,17 @@ void initDefaultChassis()
 	static hyper::Chassis defaultChassis({{// ComponentManagerUserArgs
 										   {
 											   // Drivetrain args
-											   {{LEFT_DRIVE_PORTS, RIGHT_DRIVE_PORTS, LEFT_EXTRA_DRIVE_PORT, RIGHT_EXTRA_DRIVE_PORT, IMU_PORT, LAT_ROT_DRIVE_PORT}},
+											   {
+												{
+													LEFT_EXTRA_DRIVE_PORT,
+													RIGHT_EXTRA_DRIVE_PORT,
+													LEFT_DRIVE_PORTS,
+													RIGHT_DRIVE_PORTS,
+													IMU_PORT,
+													LAT_ROT_DRIVE_PORT
+													
+												}
+												},
 											   // Disperser ports
 											   {DISP_SCORING_PORT},
 											   // Dynamic screen ports
