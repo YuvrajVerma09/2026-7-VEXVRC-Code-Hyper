@@ -41,7 +41,7 @@
 #define DISP_SCORING_PORT {9, -11}
 
 // Turn on/off auton and opcontrol
-#define DO_MATCH_AUTON true
+#define DO_MATCH_AUTON false
 #define DO_SKILLS_AUTON false
 
 // Turn on for skills prep/post auton/opcontrol functions to be run on components
@@ -51,8 +51,8 @@
 
 // Drivetrain Ports
 
-#define LEFT_DRIVE_PORTS {-15, -14, -13}
-#define RIGHT_DRIVE_PORTS {20, 8, 21}
+#define LEFT_DRIVE_PORTS {-15, -14}
+#define RIGHT_DRIVE_PORTS {20, 8}
 
 // Chassis class to use (default is initDefaultChassis)
 #define INIT_CHASSIS initDefaultChassis

@@ -781,6 +781,8 @@ namespace hyper
 			// Drivetrain motor groups lef/right
 			pros::MotorGroup left;
 			pros::MotorGroup right;
+			pros::Motor leftHalf{-13};  // Replace with actual port
+			pros::Motor rightHalf{21}; // Replace with actual port
 
 			// Lateral and turning rotary sensors
 			pros::Rotation lRot;
@@ -840,9 +842,21 @@ namespace hyper
 			/// @param rightVoltage Voltage to set the right motor group to
 			void voltage(int leftVoltage, int rightVoltage)
 			{
+				leftVoltage = std::clamp(leftVoltage, -12000, 12000);
+				rightVoltage = std::clamp(rightVoltage, -12000, 12000);
+
 				left.move_voltage(leftVoltage);
 				right.move_voltage(rightVoltage);
+
+				leftHalf.move_voltage(
+					static_cast<int>(std::round(leftVoltage * 0.9))
+				);
+				rightHalf.move_voltage(
+					static_cast<int>(std::round(rightVoltage * 0.9))
+				);
 			}
+
+			
 
 			/// @brief Set the same voltage to both motor groups
 			/// @param volt Voltage to set both motor groups to
@@ -877,8 +891,18 @@ namespace hyper
 			/// @param rightSpeed Speed to move the right motor group at
 			void move(int leftSpeed, int rightSpeed)
 			{
+				leftSpeed = std::clamp(leftSpeed, -127, 127);
+				rightSpeed = std::clamp(rightSpeed, -127, 127);
+
 				left.move(leftSpeed);
 				right.move(rightSpeed);
+
+				leftHalf.move(
+					static_cast<int>(std::round(leftSpeed * 0.9))
+				);
+				rightHalf.move(
+					static_cast<int>(std::round(rightSpeed * 0.9))
+				);
 			}
 
 			/// @brief Move both motor groups at the same speed
@@ -1506,7 +1530,7 @@ namespace hyper
 		public:
 			/// @brief Sets the driver control mode
 			/// @param mode Mode to set the driver control to
-			void setDriveControlMode(DriveControlMode mode = DriveControlMode::ATAC)
+			void setDriveControlMode(DriveControlMode mode = DriveControlMode::ARCADE)
 			{
 				driveControlMode = mode;
 
@@ -1879,14 +1903,8 @@ namespace hyper
 			{
 				handleL1();
 			}
-			else if (master->get_digital(pros::E_CONTROLLER_DIGITAL_B))
-			{
-				handleB();
-			}
-			else if (master->get_digital_new_press(pros::E_CONTROLLER_DIGITAL_X))
-			{
-				handleX();
-			}
+			
+			
 			else 
 			{
 				stopCheck();
@@ -2489,16 +2507,70 @@ void preControl()
 	currentChassis->postAuton();
 #endif
 }
+pros::Motor pulleyLeft{-1};
+pros::Motor pulleyRight{-2};
 
+void controlPulleys()
+{
+    auto& controller = currentChassis->getController();
+
+    bool up = controller.get_digital(
+        pros::E_CONTROLLER_DIGITAL_UP
+    );
+    bool down = controller.get_digital(
+        pros::E_CONTROLLER_DIGITAL_DOWN
+    );
+
+    int power = 0;
+
+    if (up && !down)
+        power = 127;
+    else if (down && !up)
+        power = -127;
+
+    pulleyLeft.move(power);
+    pulleyRight.move(-power);
+}
+pros::Motor toggleMotor{17}; // Replace 10 with its unused motor port
+
+void controlToggleMotor()
+{
+    auto& controller = currentChassis->getController();
+
+    // 0 = stopped, 1 = forward, -1 = reverse
+    static int direction = 0;
+
+    bool xPressed = controller.get_digital_new_press(
+        pros::E_CONTROLLER_DIGITAL_X
+    );
+    bool bPressed = controller.get_digital_new_press(
+        pros::E_CONTROLLER_DIGITAL_B
+    );
+
+    bool bothHeld =
+        controller.get_digital(pros::E_CONTROLLER_DIGITAL_X) &&
+        controller.get_digital(pros::E_CONTROLLER_DIGITAL_B);
+
+    if (bothHeld)
+        direction = 0;
+    else if (xPressed)
+        direction = (direction == 1) ? 0 : 1;
+    else if (bPressed)
+        direction = (direction == -1) ? 0 : -1;
+
+    toggleMotor.move(direction * 127);
+}
 void mainloopControl()
 {
-	bool opControlRunning = DO_OP_CONTROL;
-	// Chassis control loop
-	while (opControlRunning)
-	{
-		// Chassis opcontrol
-		currentChassis->opControl();
-	}
+    bool opControlRunning = DO_OP_CONTROL;
+
+    while (opControlRunning)
+    {
+        currentChassis->opControl();
+        controlPulleys();
+        controlToggleMotor();
+        pros::delay(20);
+    }
 }
 
 void mainControl()
