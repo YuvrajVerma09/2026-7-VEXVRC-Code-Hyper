@@ -4,13 +4,18 @@
       "name": "PROS Project",
       "includePath": [
         "${workspaceFolder}/**",
+<<<<<<< HEAD
         "/Volumes/500GB/Robotics/2026-7-VEXVRC-Code-Hyper/include"
+=======
+        "e:\\VEX\\2026-7-VEXVRC-Code-Hyper\\include"
+>>>>>>> cae307e499e3d100bb8caa9fc0fd2a107f0d7b32
       ],
       "defines": [
         "_DEBUG",
         "UNICODE",
         "_UNICODE"
       ],
+<<<<<<< HEAD
       "compilerPath": "/Users/yuvi/Library/Application Support/Code/User/globalStorage/sigbots.pros/install/pros-toolchain-macos/bin/arm-none-eabi-g++",
       "cStandard": "gnu11",
       "cppStandard": "gnu++20",
@@ -21,6 +26,15 @@
       "browse": {
         "path": [
           "/Volumes/500GB/Robotics/2026-7-VEXVRC-Code-Hyper"
+=======
+      "compilerPath": "C:\\PROS\\usr\\bin\\arm-none-eabi-g++",
+      "cStandard": "gnu11",
+      "cppStandard": "gnu++20",
+      "intelliSenseMode": "gcc-arm",
+      "browse": {
+        "path": [
+          "e:\\VEX\\2026-7-VEXVRC-Code-Hyper"
+>>>>>>> cae307e499e3d100bb8caa9fc0fd2a107f0d7b32
         ],
         "limitSymbolsToIncludedHeaders": true,
         "databaseFilename": ""

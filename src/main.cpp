@@ -781,12 +781,19 @@ namespace hyper
 			// Drivetrain motor groups lef/right
 			pros::MotorGroup left;
 			pros::MotorGroup right;
+<<<<<<< HEAD
 			pros::Motor leftHalf{-13};  // Replace with actual port
 			pros::Motor rightHalf{21}; // Replace with actual port
+=======
+			// Extra drivetrain motors running at 90%
+			pros::Motor leftExtra;
+			pros::Motor rightExtra;
+
+>>>>>>> cae307e499e3d100bb8caa9fc0fd2a107f0d7b32
 
 			// Lateral and turning rotary sensors
 			pros::Rotation lRot;
-			pros::Rotation tRot;
+			///pros::Rotation tRot;
 
 			// IMU
 			pros::IMU imu;
@@ -794,13 +801,16 @@ namespace hyper
 			/// @brief Struct for drive ports
 			/// @param leftPorts Ports for left motor group
 			/// @param rightPorts Ports for right motor group
+			/// @param left_half_ports Ports for right motor group
 			struct DrivePorts
 			{
+				int8_t leftExtraPort;
+    			int8_t rightExtraPort;
 				MGPorts leftPorts;
 				MGPorts rightPorts;
 				int8_t imuPort;
 				uint8_t lRotPort;
-				uint8_t tRotPort;
+				///uint8_t tRotPort;
 			};
 
 			/// @brief Tare the motor groups
@@ -808,12 +818,13 @@ namespace hyper
 			{
 				left.tare_position();
 				right.tare_position();
+				
 			}
 
 			void resetEncoders()
 			{
 				// Reset encoders
-				tRot.reset();
+				///tRot.reset();
 				lRot.reset();
 			}
 			
@@ -830,9 +841,15 @@ namespace hyper
 			/// @brief Constructor for DriveMGs object
 			/// @param leftPorts Ports for left motor group
 			/// @param rightPorts Ports for right motor group
-			DriveIO(DrivePorts drivePorts) : left(drivePorts.leftPorts), right(drivePorts.rightPorts),
-											 imu(drivePorts.imuPort),
-											 lRot(drivePorts.lRotPort), tRot(drivePorts.tRotPort)
+			DriveIO(DrivePorts drivePorts) : 
+				left(drivePorts.leftPorts), 
+				right(drivePorts.rightPorts),
+				leftExtra(drivePorts.leftExtraPort),
+    			rightExtra(drivePorts.rightExtraPort),
+				imu(drivePorts.imuPort),
+												
+				lRot(drivePorts.lRotPort) 
+				///tRot(drivePorts.tRotPort)
 			{
 				calibrateAll();
 			};
@@ -847,6 +864,7 @@ namespace hyper
 
 				left.move_voltage(leftVoltage);
 				right.move_voltage(rightVoltage);
+<<<<<<< HEAD
 
 				leftHalf.move_voltage(
 					static_cast<int>(std::round(leftVoltage * 0.9))
@@ -854,6 +872,10 @@ namespace hyper
 				rightHalf.move_voltage(
 					static_cast<int>(std::round(rightVoltage * 0.9))
 				);
+=======
+				leftExtra.move_voltage(leftVoltage * 0.9);
+   	 			rightExtra.move_voltage(rightVoltage * 0.9);
+>>>>>>> cae307e499e3d100bb8caa9fc0fd2a107f0d7b32
 			}
 
 			
@@ -878,6 +900,8 @@ namespace hyper
 			{
 				left.move_velocity(leftVel);
 				right.move_velocity(rightVel);
+				leftExtra.move_velocity(leftVel * 0.9);
+    			rightExtra.move_velocity(rightVel * 0.9);
 			}
 
 			/// @brief Set the same velocity to both motor groups
@@ -897,12 +921,17 @@ namespace hyper
 				left.move(leftSpeed);
 				right.move(rightSpeed);
 
+<<<<<<< HEAD
 				leftHalf.move(
 					static_cast<int>(std::round(leftSpeed * 0.9))
 				);
 				rightHalf.move(
 					static_cast<int>(std::round(rightSpeed * 0.9))
 				);
+=======
+				leftExtra.move(leftSpeed * 0.9);
+    			rightExtra.move(rightSpeed * 0.9);
+>>>>>>> cae307e499e3d100bb8caa9fc0fd2a107f0d7b32
 			}
 
 			/// @brief Move both motor groups at the same speed
@@ -1544,6 +1573,7 @@ namespace hyper
 					break;
 				case DriveControlMode::ATAC:
 					bindDriveControl(&DriveControl::atac);
+					break;
 				default:
 					bindDriveControl(&DriveControl::fallbackControl);
 					break;
@@ -2444,7 +2474,17 @@ void initDefaultChassis()
 	static hyper::Chassis defaultChassis({{// ComponentManagerUserArgs
 										   {
 											   // Drivetrain args
-											   {{LEFT_DRIVE_PORTS, RIGHT_DRIVE_PORTS, IMU_PORT, LAT_ROT_DRIVE_PORT}},
+											   {
+												{
+													LEFT_EXTRA_DRIVE_PORT,
+													RIGHT_EXTRA_DRIVE_PORT,
+													LEFT_DRIVE_PORTS,
+													RIGHT_DRIVE_PORTS,
+													IMU_PORT,
+													LAT_ROT_DRIVE_PORT
+													
+												}
+												},
 											   // Disperser ports
 											   {DISP_SCORING_PORT},
 											   // Dynamic screen ports
