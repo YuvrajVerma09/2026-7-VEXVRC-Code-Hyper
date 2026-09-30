@@ -35,10 +35,10 @@
 // (Mid Goal) L2: reverse spin MID and normal spin BOT
 // (Top Goal) L1: reverse spin MID and normal spin BOT and reverse spin TOP
 
-#define DISP_BOT_PORTS {11}
-#define DISP_MID_PORTS {17}
-#define DISP_TOP_PORTS {9}
-#define DISP_SCORING_PORT {9, -11}
+#define DISP_BOT_PORTS {}
+#define DISP_MID_PORTS {}
+#define DISP_TOP_PORTS {}
+#define DISP_SCORING_PORT {}
 
 // Turn on/off auton and opcontrol
 #define DO_MATCH_AUTON false
@@ -53,11 +53,9 @@
 
 #define LEFT_DRIVE_PORTS {-15, -14}
 #define RIGHT_DRIVE_PORTS {20, 8}
-<<<<<<< HEAD
-=======
-#define LEFT_EXTRA_DRIVE_PORT  {-17}
-#define RIGHT_EXTRA_DRIVE_PORT {18}
->>>>>>> cae307e499e3d100bb8caa9fc0fd2a107f0d7b32
+#define LEFT_EXTRA_DRIVE_PORT {10}
+#define RIGHT_EXTRA_DRIVE_PORT {11}
+
 
 // Chassis class to use (default is initDefaultChassis)
 #define INIT_CHASSIS initDefaultChassis

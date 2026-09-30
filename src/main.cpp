@@ -781,16 +781,10 @@ namespace hyper
 			// Drivetrain motor groups lef/right
 			pros::MotorGroup left;
 			pros::MotorGroup right;
-<<<<<<< HEAD
-			pros::Motor leftHalf{-13};  // Replace with actual port
-			pros::Motor rightHalf{21}; // Replace with actual port
-=======
+
 			// Extra drivetrain motors running at 90%
 			pros::Motor leftExtra;
 			pros::Motor rightExtra;
-
->>>>>>> cae307e499e3d100bb8caa9fc0fd2a107f0d7b32
-
 			// Lateral and turning rotary sensors
 			pros::Rotation lRot;
 			///pros::Rotation tRot;
@@ -864,18 +858,29 @@ namespace hyper
 
 				left.move_voltage(leftVoltage);
 				right.move_voltage(rightVoltage);
-<<<<<<< HEAD
 
-				leftHalf.move_voltage(
+				leftExtra.move_voltage(
 					static_cast<int>(std::round(leftVoltage * 0.9))
 				);
-				rightHalf.move_voltage(
+				rightExtra.move_voltage(
 					static_cast<int>(std::round(rightVoltage * 0.9))
 				);
-=======
-				leftExtra.move_voltage(leftVoltage * 0.9);
-   	 			rightExtra.move_voltage(rightVoltage * 0.9);
->>>>>>> cae307e499e3d100bb8caa9fc0fd2a107f0d7b32
+			}
+
+			void move(int leftSpeed, int rightSpeed)
+			{
+				leftSpeed = std::clamp(leftSpeed, -127, 127);
+				rightSpeed = std::clamp(rightSpeed, -127, 127);
+
+				left.move(leftSpeed);
+				right.move(rightSpeed);
+
+				leftExtra.move(
+					static_cast<int>(std::round(leftSpeed * 0.9))
+				);
+				rightExtra.move(
+					static_cast<int>(std::round(rightSpeed * 0.9))
+				);
 			}
 
 			
@@ -913,33 +918,11 @@ namespace hyper
 			/// @brief Move the motor groups using the motor.move() function
 			/// @param leftSpeed Speed to move the left motor group at
 			/// @param rightSpeed Speed to move the right motor group at
-			void move(int leftSpeed, int rightSpeed)
-			{
-				leftSpeed = std::clamp(leftSpeed, -127, 127);
-				rightSpeed = std::clamp(rightSpeed, -127, 127);
-
-				left.move(leftSpeed);
-				right.move(rightSpeed);
-
-<<<<<<< HEAD
-				leftHalf.move(
-					static_cast<int>(std::round(leftSpeed * 0.9))
-				);
-				rightHalf.move(
-					static_cast<int>(std::round(rightSpeed * 0.9))
-				);
-=======
-				leftExtra.move(leftSpeed * 0.9);
-    			rightExtra.move(rightSpeed * 0.9);
->>>>>>> cae307e499e3d100bb8caa9fc0fd2a107f0d7b32
-			}
+			
 
 			/// @brief Move both motor groups at the same speed
 			/// @param speed Speed to move motor groups at
-			void move(int speed)
-			{
-				move(speed, speed);
-			}
+			
 
 			/// @brief Get the average position of the motor groups (certain wires on our motor are broken so you MUST use this if you want a reliable position)
 			/// @return Average position of the motor groups
@@ -2547,92 +2530,33 @@ void preControl()
 	currentChassis->postAuton();
 #endif
 }
-pros::Motor pulleyLeft{-1};
-pros::Motor pulleyRight{-2};
+pros::Motor pulleyLeft{1};
+pros::Motor pulleyRight{2};
 
 void controlPulleys()
 {
     auto& controller = currentChassis->getController();
 
-    // Starting values only — tune with the frame supported.
-    constexpr int BASE_POWER = 40;
-    constexpr double SYNC_GAIN = 5.0;
-    constexpr double MAX_SKEW_DEG = 8.0;
-
-    static bool initialized = false;
-    static bool fault = false;
-
-    if (!initialized)
-    {
-        pulleyLeft.set_encoder_units(pros::E_MOTOR_ENCODER_DEGREES);
-        pulleyRight.set_encoder_units(pros::E_MOTOR_ENCODER_DEGREES);
-
-        pulleyLeft.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
-        pulleyRight.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
-
-        // The frame MUST be physically level at this point.
-        pulleyLeft.tare_position();
-        pulleyRight.tare_position();
-
-        initialized = true;
-    }
-
     bool up = controller.get_digital(pros::E_CONTROLLER_DIGITAL_UP);
     bool down = controller.get_digital(pros::E_CONTROLLER_DIGITAL_DOWN);
 
-    int direction = 0;
+    int power = 0;
+
     if (up && !down)
-        direction = 1;
+        power = 40;
     else if (down && !up)
-        direction = -1;
+        power = -40;
 
-    // Negate the right reading because it rotates oppositely.
-    double leftPosition = pulleyLeft.get_position();
-    double rightPosition = -pulleyRight.get_position();
+    pulleyLeft.move(static_cast<int>(std::round(power * 0.85)));
+    pulleyRight.move(-power);
 
-    if (!std::isfinite(leftPosition) ||
-        !std::isfinite(rightPosition))
-    {
-        fault = true;
-    }
-
-    double error = leftPosition - rightPosition;
-
-    // Stop BOTH motors if the sides become too uneven.
-    if (std::fabs(error) >= MAX_SKEW_DEG)
-        fault = true;
-
-    if (fault || direction == 0)
-    {
-        pulleyLeft.brake();
-        pulleyRight.brake();
-
-        if (fault)
-            pros::lcd::set_text(6, "Pulley fault: inspect and re-level");
-
-        return;
-    }
-
-    // Positive means the left side is ahead in our travel direction.
-    double lead = error * direction;
-
-    int reduction = static_cast<int>(
-        std::round(std::fabs(lead) * SYNC_GAIN)
+    pros::lcd::print(
+        5, "UP:%d DOWN:%d POWER:%d",
+        (int)up, (int)down, power
     );
-    reduction = std::clamp(reduction, 0, BASE_POWER);
-
-    int leftPower = BASE_POWER;
-    int rightPower = BASE_POWER;
-
-    if (lead > 0)
-        leftPower -= reduction;
-    else if (lead < 0)
-        rightPower -= reduction;
-
-    pulleyLeft.move(direction * leftPower);
-    pulleyRight.move(-direction * rightPower);
 }
-pros::Motor toggleMotor{17}; // Replace 10 with its unused motor port
+pros::Motor toggleMotor{5}; // Replace 10 with its unused motor port
+
 
 void controlToggleMotor()
 {
