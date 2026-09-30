@@ -2554,22 +2554,83 @@ void controlPulleys()
 {
     auto& controller = currentChassis->getController();
 
-    bool up = controller.get_digital(
-        pros::E_CONTROLLER_DIGITAL_UP
-    );
-    bool down = controller.get_digital(
-        pros::E_CONTROLLER_DIGITAL_DOWN
-    );
+    // Starting values only — tune with the frame supported.
+    constexpr int BASE_POWER = 40;
+    constexpr double SYNC_GAIN = 5.0;
+    constexpr double MAX_SKEW_DEG = 8.0;
 
-    int power = 0;
+    static bool initialized = false;
+    static bool fault = false;
 
+    if (!initialized)
+    {
+        pulleyLeft.set_encoder_units(pros::E_MOTOR_ENCODER_DEGREES);
+        pulleyRight.set_encoder_units(pros::E_MOTOR_ENCODER_DEGREES);
+
+        pulleyLeft.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+        pulleyRight.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+
+        // The frame MUST be physically level at this point.
+        pulleyLeft.tare_position();
+        pulleyRight.tare_position();
+
+        initialized = true;
+    }
+
+    bool up = controller.get_digital(pros::E_CONTROLLER_DIGITAL_UP);
+    bool down = controller.get_digital(pros::E_CONTROLLER_DIGITAL_DOWN);
+
+    int direction = 0;
     if (up && !down)
-        power = 127;
+        direction = 1;
     else if (down && !up)
-        power = -127;
+        direction = -1;
 
-    pulleyLeft.move(power);
-    pulleyRight.move(-power);
+    // Negate the right reading because it rotates oppositely.
+    double leftPosition = pulleyLeft.get_position();
+    double rightPosition = -pulleyRight.get_position();
+
+    if (!std::isfinite(leftPosition) ||
+        !std::isfinite(rightPosition))
+    {
+        fault = true;
+    }
+
+    double error = leftPosition - rightPosition;
+
+    // Stop BOTH motors if the sides become too uneven.
+    if (std::fabs(error) >= MAX_SKEW_DEG)
+        fault = true;
+
+    if (fault || direction == 0)
+    {
+        pulleyLeft.brake();
+        pulleyRight.brake();
+
+        if (fault)
+            pros::lcd::set_text(6, "Pulley fault: inspect and re-level");
+
+        return;
+    }
+
+    // Positive means the left side is ahead in our travel direction.
+    double lead = error * direction;
+
+    int reduction = static_cast<int>(
+        std::round(std::fabs(lead) * SYNC_GAIN)
+    );
+    reduction = std::clamp(reduction, 0, BASE_POWER);
+
+    int leftPower = BASE_POWER;
+    int rightPower = BASE_POWER;
+
+    if (lead > 0)
+        leftPower -= reduction;
+    else if (lead < 0)
+        rightPower -= reduction;
+
+    pulleyLeft.move(direction * leftPower);
+    pulleyRight.move(-direction * rightPower);
 }
 pros::Motor toggleMotor{17}; // Replace 10 with its unused motor port
 
