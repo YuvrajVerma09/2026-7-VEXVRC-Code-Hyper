@@ -2547,7 +2547,7 @@ void controlPulleys()
     else if (down && !up)
         power = -40;
 
-    pulleyLeft.move(static_cast<int>(std::round(power * 0.85)));
+    pulleyLeft.move(static_cast<int>(std::round(power * 1)));
     pulleyRight.move(-power);
 
     pros::lcd::print(
@@ -2585,17 +2585,40 @@ void controlToggleMotor()
 
     toggleMotor.move(direction * 127);
 }
+pros::adi::DigitalOut outputA{'A', false};
+pros::adi::DigitalOut outputB{'B', true};
+
+void controlDigitalOutputs()
+{
+    auto& controller = currentChassis->getController();
+
+    static bool stateA = false;
+    static bool stateB = false;
+
+    if (controller.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_A))
+    {
+        stateA = !stateA;
+        outputA.set_value(stateA);
+    }
+
+    if (controller.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_Y))
+    {
+        stateB = !stateB;
+        outputB.set_value(stateB);
+    }
+}
 void mainloopControl()
 {
     bool opControlRunning = DO_OP_CONTROL;
 
     while (opControlRunning)
-    {
-        currentChassis->opControl();
-        controlPulleys();
-        controlToggleMotor();
-        pros::delay(20);
-    }
+		{
+			currentChassis->opControl();
+			controlPulleys();
+			controlToggleMotor();
+			controlDigitalOutputs(); // Add this
+			pros::delay(20);
+		}
 }
 
 void mainControl()
